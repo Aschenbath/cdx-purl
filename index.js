@@ -239,12 +239,20 @@ function parseQualifiers(rawQualifiers, input) {
   return Object.keys(out).length ? out : null;
 }
 
+function trimSlashes(value) {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value.charCodeAt(start) === 47) start++;
+  while (end > start && value.charCodeAt(end - 1) === 47) end--;
+  return value.slice(start, end);
+}
+
 function parseSubpath(rawSubpath, input) {
   if (rawSubpath == null) {
     return null;
   }
 
-  const stripped = rawSubpath.replace(/^\/+|\/+$/g, "");
+  const stripped = trimSlashes(rawSubpath);
   if (!stripped) {
     return null;
   }
@@ -265,12 +273,11 @@ function parseSubpath(rawSubpath, input) {
 }
 
 function parsePath(rawPath, input) {
-  const withoutLeading = rawPath.replace(/^\/+/, "");
-  if (!withoutLeading) {
+  const withoutTrailing = trimSlashes(rawPath);
+  if (!withoutTrailing) {
     throw createError("E_MISSING_TYPE", "PURL type is required", input);
   }
 
-  const withoutTrailing = withoutLeading.replace(/\/+$/, "");
   const slash = withoutTrailing.indexOf("/");
   if (slash <= 0) {
     throw createError("E_MISSING_NAME", "PURL name is required", input);
